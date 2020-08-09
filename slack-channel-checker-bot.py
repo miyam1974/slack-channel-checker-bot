@@ -93,14 +93,17 @@ def main():
     try:
         config.token
         config.post_channel_id
-        config.target_days
         config.tz_hours
+        config.target_days
         config.target_hours
         config.target_minutes
         config.tz_name
     except AttributeError as e:
         print("Error: required config not exists. Desc: %s\n" % (e.args), file=sys.stderr)
         sys.exit(1)
+
+    if config.target_days == 0 and config.target_hours == 0 and config.target_minutes == 0:
+        config.target_days = 1
 
     # ------------------
     # 0.2: mode check (normal / join / leave)
