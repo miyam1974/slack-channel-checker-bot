@@ -115,6 +115,11 @@ def main():
     channels   = json_data1["channels"]
 
     for i in channels:
+        try:
+            if i["id"] in config.exclude_channel_id:
+                continue
+        except AttributeError:
+            pass
         # ------------------
         # 2: join channel
         # ------------------
