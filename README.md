@@ -10,9 +10,17 @@ Post the number of posts for the specified period on all channels.
 1. Depending on the argument, you can execute __only join channel or leave channel__.  
 
 # Slack settings
+## Using API Methods
+
+    https://api.slack.com/methods/conversations.list
+    https://api.slack.com/methods/conversations.join
+    https://api.slack.com/methods/conversations.leave
+    https://api.slack.com/methods/conversations.history
+    https://api.slack.com/methods/chat.postMessage
+
 (Under Writing)
 
-# Installation method
+# Installation
 Place script and configuration file in the environment where python3 can be used.  
 Please rewrite the configuration file with appropriate values.  
 If you want to execute this script periodically, use cron or task scheduler.  
@@ -58,18 +66,19 @@ The bot can only join the channel or leave the channel.
 ## Operation mode and arguments matrix
 | mode | command line argument |
 |:---|:---|
-|normal|normal or "" (no argument)|
+|normal||
 |channel join|join|
 |channel leave|leave|
+|dry run|dry-run|
 
 ## script action and Operation mode matrix
-|script action \ mode|normal|join|leave|
-|:---|:---|:---|:---|
-|1. Get channel list|do|do|do|
-|2. Join channel|do|do|--|
-|3. Leave channel|--|--|do|
-|4. Get channel posts|do|--|--|
-|5. Posts result|do|--|--|
+|script action \ mode|normal|channel join|channel leave|dry run|
+|:---|:---|:---|:---|:---|
+|1. Get channel list|do|do|do|do|
+|2. Join channel|do|do|--|do|
+|3. Leave channel|--|--|do|--|
+|4. Get channel posts|do|--|--|do|
+|5. Posts result|do|--|--|--|
 
 # License
 MIT License  
@@ -88,6 +97,14 @@ MIT License
 1. 引数により、チャンネル参加のみ、チャンネル退出のみを実行できます。
 
 # Slack設定
+## Using API Methods
+
+    https://api.slack.com/methods/conversations.list
+    https://api.slack.com/methods/conversations.join
+    https://api.slack.com/methods/conversations.leave
+    https://api.slack.com/methods/conversations.history
+    https://api.slack.com/methods/chat.postMessage
+
 ## Create App
 以下のURLでCreate New Appを選択します。
 
@@ -215,18 +232,19 @@ Python3
 ## 動作モードと引数のマトリクス
 | モード | コマンドライン引数 |
 |:---|:---|
-|ノーマル|normal or "" (引数なし)|
+|ノーマル||
 |チャンネル参加|join|
 |チャンネル退出|leave|
+|ドライラン（ダミー実行）|dry-run|
 
 ## アクションと動作モードのマトリクス
-|アクション＼モード|ノーマル|参加|退出|
-|:---|:---|:---|:---|
-|1. チャンネルリスト取得|do|do|do|
-|2. チャンネル参加|do|do|--|
-|3. チャンネル退出|--|--|do|
-|4. チャンネル投稿取得|do|--|--|
-|5. チェック結果投稿|do|--|--|
+|アクション＼モード|ノーマル|チャンネル参加|チャンネル退出|ドライラン（ダミー実行）|
+|:---|:---|:---|:---|:---|
+|1. チャンネルリスト取得|do|do|do|do|
+|2. チャンネル参加|do|do|--|do|
+|3. チャンネル退出|--|--|do|--|
+|4. チャンネル投稿取得|do|--|--|do|
+|5. チェック結果投稿|do|--|--|--|
 
 # ライセンス
 MIT Licenseです。  

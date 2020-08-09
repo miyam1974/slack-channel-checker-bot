@@ -34,24 +34,26 @@
 #     Config File:  /path/to/anyname-config.py
 #
 # [Mode Argument Matrix]
-#   +----------------------+
-#   |mode    |argument     |
-#   +--------+-------------+
-#   |normal  |normal or "" |
-#   |join    |join         |
-#   |leave   |leave        |
-#   +----------------------+
+#   +---------------------+
+#   |mode      |argument  |
+#   +----------+----------+
+#   |normal    |          |
+#   |join      |join      |
+#   |leave     |leave     |
+#   |dry-run   |dry-run   |
+#   +---------------------+
 #
 # [Action Mode Matrix]
-#   +---------------------+------+------+------+
-#   |action / mode        |normal|join  |leave |
-#   +---------------------+------+------+------+
-#   |1. get channel list  |  do  |  do  |  do  |
-#   |2. join channel      |  do  |  do  |  --  |
-#   |3. leave channel     |  --  |  --  |  do  |
-#   |4. get channel posts |  do  |  --  |  --  |
-#   |5. post result       |  do  |  --  |  --  |
-#   +---------------------+------+------+------+
+#   +---------------------+--------+--------+--------+--------+
+#   |action / mode        | normal | join   | leave  | dry-run|
+#   +---------------------+--------+--------+--------+--------+
+#   |1. get channel list  |   do   |   do   |   do   |   do   |
+#   |2. join channel      |   do   |   do   |   --   |   do   |
+#   |3. leave channel     |   --   |   --   |   do   |   --   |
+#   |4. get channel posts |   do   |   --   |   --   |   do   |
+#   |5. post result       |   do   |   --   |   --   |   --   |
+#   |6. print result      |   do   |   --   |   --   |   do   |
+#   +---------------------+--------+--------+--------+--------+
 #
 # ------------------------------------------------------------------------------
 # SCRIPT (No changes required)
@@ -62,9 +64,10 @@ url3  = "https://slack.com/api/conversations.leave"
 url4  = "https://slack.com/api/conversations.history"
 url5  = "https://slack.com/api/chat.postMessage"
 
-normal = "normal"
-join   = "join"
-leave  = "leave"
+normal   = "normal"
+join     = "join"
+leave    = "leave"
+dry_run  = "dry-run"
 
 import requests
 import json
@@ -108,20 +111,21 @@ def main():
     # ------------------
     # 0.2: mode check (normal / join / leave)
     # ------------------
-    if len(sys.argv) == 2:
-        if sys.argv[1].lower() == normal:
-            mode = normal
-        if sys.argv[1].lower() == join:
+    if len(sys.argv) >= 2: # 1: No Arguments
+        if   [a for a in sys.argv if a.lower() == join]:
             mode = join
-        if sys.argv[1].lower() == leave:
+        elif [a for a in sys.argv if a.lower() == leave]:
             mode = leave
+        elif [a for a in sys.argv if a.lower() == dry_run]:
+            mode = dry_run
+        else:
+            mode = normal
     else:
         mode = normal
 
     # ------------------
     # 1: get channel list
     # ------------------
-    text     = ""
     oldest   = (datetime.now(timezone(timedelta(hours = config.tz_hours), config.tz_name)) - timedelta(days = config.target_days, hours = config.target_hours, minutes = config.target_minutes))
     payload1 = {
         "token"           : config.token,
@@ -134,6 +138,7 @@ def main():
         sys.exit(1)
     channels   = json_data1["channels"]
 
+    text = ""
     for i in channels:
         try:
             if i["id"] in config.exclude_channel_id:
@@ -144,7 +149,7 @@ def main():
         # ------------------
         # 2: join channel
         # ------------------
-        if mode == normal or mode == join:
+        if mode == normal or mode == join or mode == dry_run:
             payload2 = {
                 "token"   : config.token,
                 "channel" : i["id"]
@@ -172,7 +177,7 @@ def main():
         # ------------------
         # 4: get channel posts
         # ------------------
-        if mode == normal:
+        if mode == normal or mode == dry_run:
             payload4 = {
                 "token"   : config.token,
                 "channel" : i["id"],
@@ -192,8 +197,8 @@ def main():
                         try:
                             if m["user"] not in config.exclude_users_id:
                                 messages.append(m)
-                            except KeyError:
-                                messages.append(m)
+                        except KeyError:
+                            messages.append(m)
                     json_message4 = messages
             except AttributeError:
                 pass
@@ -217,7 +222,7 @@ def main():
     # ------------------
     # 5: post result
     # ------------------
-    if mode == normal:
+    if mode == normal or mode == dry_run:
         if text != "":
             text  = "Posts after " + oldest.strftime("%Y/%-m/%-d %-H:%M") + " " + config.tz_name + "\n" + text
             text += "Posted from: %s (%s):%s" % (host, ip, file)+ "\n"
@@ -227,12 +232,20 @@ def main():
                 "link_names": "true",
                 "text"      : text
             }
-            response5  = requests.get(url5, params=payload5)
-            json_data5 = response5.json()
-            if json_data5["ok"] == False:
-                print("Error: api/chat.postMessage failed. Desc: %s\n" % (json_data5["error"]), file=sys.stderr)
-                sys.exit(1)
-            print(text)
+            if mode == normal:
+                response5  = requests.get(url5, params=payload5)
+                json_data5 = response5.json()
+                if json_data5["ok"] == False:
+                    print("Error: api/chat.postMessage failed. Desc: %s\n" % (json_data5["error"]), file=sys.stderr)
+                    sys.exit(1)
+
+    if len(sys.argv) >= 2:
+        arguments = sys.argv[1:len(sys.argv)]
+    else:
+        arguments = []
+    print("Args: %s" % (arguments))
+    print("Mode: %s" % (mode))
+    print("\n" + text)
 
 if __name__ == '__main__':
     main()
