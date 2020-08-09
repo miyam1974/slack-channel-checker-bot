@@ -26,6 +26,13 @@
 #   (See Also)
 #      https://api.slack.com/methods
 #
+# [Program File and Config File]
+#   This program file can be renamed to any file name.
+#   Prepare a config file in the same directory with the following name.
+#   
+#     Program File: /path/to/anyname.py
+#     Config File:  /path/to/anyname-config.py
+#
 # [Mode Argument Matrix]
 #   +----------------------+
 #   |mode    |argument     |
@@ -47,14 +54,6 @@
 #   +---------------------+------+------+------+
 #
 # ------------------------------------------------------------------------------
-# SETTTING (Change ppropriately)
-# ------------------------------------------------------------------------------
-token           = "pleease input"
-post_channel_id = "pleease input"
-target_days     = 1
-tz_hours        = +9
-tz_name         = "JST"
-# ------------------------------------------------------------------------------
 # SCRIPT (No changes required)
 # ------------------------------------------------------------------------------
 url1  = "https://slack.com/api/conversations.list"
@@ -73,14 +72,20 @@ import pprint
 import socket
 import os
 import sys
-import pwd
+import importlib
 from datetime import datetime,timedelta,timezone
 
 def main():
     host = socket.gethostname()
     ip   = socket.gethostbyname(host)
     file = os.path.basename(__file__)
-
+    conf = os.path.splitext(os.path.basename(file))[0] + "-config"
+    
+    try:
+        config = importlib.import_module(conf)
+    except Exception as e:
+        print('Error: config file import failed. File: %s Desc: %s' % (conf, e.args), file=sys.stderr)
+        sys.exit(1)
     # ------------------
     # 0: mode check (normal / join / leave)
     # ------------------ 
@@ -97,9 +102,9 @@ def main():
     # 1: get channel list
     # ------------------
     text     = ""
-    oldest   = (datetime.now(timezone(timedelta(hours = tz_hours), tz_name)) - timedelta(days = target_days))
+    oldest   = (datetime.now(timezone(timedelta(hours = config.tz_hours), config.tz_name)) - timedelta(days = config.target_days))
     payload1 = {
-        "token"           : token,
+        "token"           : config.token,
         "exclude_archived": "true"
     }
     response1  = requests.get(url1, params=payload1)
@@ -112,7 +117,7 @@ def main():
         # ------------------
         if mode == normal or mode == join:
             payload2 = {
-                "token"   : token,
+                "token"   : config.token,
                 "channel" : i["id"]
             }
             response2 = requests.get(url2, params=payload2)
@@ -121,7 +126,7 @@ def main():
         # ------------------
         if mode == leave:
             payload3 = {
-                "token"   : token,
+                "token"   : config.token,
                 "channel" : i["id"]
             }
             response3 = requests.get(url3, params=payload3)
@@ -130,7 +135,7 @@ def main():
         # ------------------
         if mode == normal:
             payload4 = {
-                "token"   : token,
+                "token"   : config.token,
                 "channel" : i["id"],
                 "oldest"  : oldest.timestamp()
             }
@@ -143,12 +148,12 @@ def main():
     # ------------------
     if mode == normal:
         if text != "":
-            text  = "Posts after " + oldest.strftime('%Y/%-m/%-d %-H:%M') + " " + tz_name + "\n" + text + "\n"
+            text  = "Posts after " + oldest.strftime('%Y/%-m/%-d %-H:%M') + " " + config.tz_name + "\n" + text + "\n"
             text += "Posted from: %s (%s):%s" % (host, ip, file)+ "\n"
             print(text)
             payload5 = {
-                "token"     : token,
-                "channel"   : post_channel_id,
+                "token"     : config.token,
+                "channel"   : config.post_channel_id,
                 "link_names": "true",
                 "text"      : text
             }
