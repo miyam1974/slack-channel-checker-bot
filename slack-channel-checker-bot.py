@@ -184,8 +184,11 @@ def main():
                 if config.exclude_users_id:
                     messages = []
                     for m in json_message4:
-                        if m["user"] not in config.exclude_users_id:
-                            messages.append(m)
+                        try:
+                            if m["user"] not in config.exclude_users_id:
+                                messages.append(m)
+                            except KeyError:
+                                messages.append(m)
                     json_message4 = messages
             except AttributeError:
                 pass
