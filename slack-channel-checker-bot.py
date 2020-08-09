@@ -80,15 +80,29 @@ def main():
     ip   = socket.gethostbyname(host)
     file = os.path.basename(__file__)
     conf = os.path.splitext(os.path.basename(file))[0] + "-config"
-    
+
+    # ------------------
+    # 0.1: config check
+    # ------------------
     try:
         config = importlib.import_module(conf)
-    except Exception as e:
+    except ModuleNotFoundError as e:
         print("Error: config file import failed. File: %s Desc: %s\n" % (conf, e.args), file=sys.stderr)
         sys.exit(1)
+
+    try:
+        config.token
+        config.post_channel_id
+        config.target_days
+        config.tz_hours
+        config.tz_name
+    except AttributeError as e:
+        print("Error: required config not exists. Desc: %s\n" % (e.args), file=sys.stderr)
+        sys.exit(1)
+
     # ------------------
-    # 0: mode check (normal / join / leave)
-    # ------------------ 
+    # 0.2: mode check (normal / join / leave)
+    # ------------------
     if len(sys.argv) == 2:
         if sys.argv[1].lower() == normal:
             mode = normal
@@ -98,6 +112,7 @@ def main():
             mode = leave
     else:
         mode = normal
+
     # ------------------
     # 1: get channel list
     # ------------------
@@ -120,6 +135,7 @@ def main():
                 continue
         except AttributeError:
             pass
+
         # ------------------
         # 2: join channel
         # ------------------
@@ -133,6 +149,7 @@ def main():
             if json_data2["ok"] == False:
                 print("Error: api/conversations.join failed. Desc: %s\n" % (json_data2["error"]), file=sys.stderr)
                 sys.exit(1)
+
         # ------------------
         # 3: leave channel
         # ------------------
@@ -146,6 +163,7 @@ def main():
             if json_data3["ok"] == False:
                 print("Error: api/conversations.leave failed. Desc: %s\n" % (json_data3["error"]), file=sys.stderr)
                 sys.exit(1)
+
         # ------------------
         # 4: get channel posts
         # ------------------
@@ -162,6 +180,7 @@ def main():
                 sys.exit(1)
             elif len(json_data4["messages"]) != 0:
                 text += "#" + i["name"]  + " " + str(len(json_data4["messages"])) + " posts\n"
+
     # ------------------
     # 5: post result
     # ------------------
