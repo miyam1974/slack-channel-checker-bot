@@ -178,8 +178,14 @@ def main():
             if json_data4["ok"] == False:
                 print("Error: api/conversations.history failed. Desc: %s\n" % (json_data4["error"]), file=sys.stderr)
                 sys.exit(1)
-            elif len(json_data4["messages"]) != 0:
-                text += "#" + i["name"]  + " " + str(len(json_data4["messages"])) + " posts\n"
+            json_message4 = json_data4["messages"]
+            try:
+                if config.exclude_users_id:
+                    json_message4 = [x for x in json_message4 if x["user"] not in config.exclude_users_id]
+            except AttributeError:
+                pass
+            if len(json_message4) != 0:
+                text += "#" + i["name"]  + " " + str(len(json_message4)) + " posts\n"
 
     # ------------------
     # 5: post result

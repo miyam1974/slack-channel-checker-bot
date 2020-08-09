@@ -10,5 +10,5 @@ tz_name            = "JST"
 
 # Not Required
 exclude_channel_id = ["if needed, please input"] # When two or more, like this ["one", "tow"]
-
+exclude_users_id   = ["if needed, please input"] # When two or more, like this ["one", "tow"]
 # ------------------------------------------------------------------------------
