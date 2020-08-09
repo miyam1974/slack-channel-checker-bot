@@ -95,6 +95,8 @@ def main():
         config.post_channel_id
         config.target_days
         config.tz_hours
+        config.target_hours
+        config.target_minutes
         config.tz_name
     except AttributeError as e:
         print("Error: required config not exists. Desc: %s\n" % (e.args), file=sys.stderr)
@@ -117,7 +119,7 @@ def main():
     # 1: get channel list
     # ------------------
     text     = ""
-    oldest   = (datetime.now(timezone(timedelta(hours = config.tz_hours), config.tz_name)) - timedelta(days = config.target_days))
+    oldest   = (datetime.now(timezone(timedelta(hours = config.tz_hours), config.tz_name)) - timedelta(days = config.target_days, hours = config.target_hours, minutes = config.target_minutes))
     payload1 = {
         "token"           : config.token,
         "exclude_archived": "true"

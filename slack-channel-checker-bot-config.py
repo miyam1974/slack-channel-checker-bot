@@ -4,7 +4,9 @@
 # Required
 token              = "please input"
 post_channel_id    = "please input"
-target_days        = 1
+target_days        = 1 # The target range is the sum of days, hours, and minutes
+target_hours       = 0 # The target range is the sum of days, hours, and minutes
+target_minutes     = 0 # The target range is the sum of days, hours, and minutes
 tz_hours           = +9
 tz_name            = "JST"
 
