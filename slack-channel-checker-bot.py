@@ -179,11 +179,30 @@ def main():
                 print("Error: api/conversations.history failed. Desc: %s\n" % (json_data4["error"]), file=sys.stderr)
                 sys.exit(1)
             json_message4 = json_data4["messages"]
+
             try:
                 if config.exclude_users_id:
-                    json_message4 = [x for x in json_message4 if x["user"] not in config.exclude_users_id]
+                    messages = []
+                    for m in json_message4:
+                        if m["user"] not in config.exclude_users_id:
+                            messages.append(m)
+                    json_message4 = messages
             except AttributeError:
                 pass
+
+            try:
+                if config.exclude_message_subtype:
+                    messages = []
+                    for m in json_message4:
+                        try:
+                            if m["subtype"] not in config.exclude_message_subtype:
+                                messages.append(m)
+                        except KeyError:
+                            messages.append(m)
+                    json_message4 = messages
+            except AttributeError:
+                pass
+
             if len(json_message4) != 0:
                 text += "#" + i["name"]  + " " + str(len(json_message4)) + " posts\n"
 
@@ -192,7 +211,7 @@ def main():
     # ------------------
     if mode == normal:
         if text != "":
-            text  = "Posts after " + oldest.strftime("%Y/%-m/%-d %-H:%M") + " " + config.tz_name + "\n" + text + "\n"
+            text  = "Posts after " + oldest.strftime("%Y/%-m/%-d %-H:%M") + " " + config.tz_name + "\n" + text
             text += "Posted from: %s (%s):%s" % (host, ip, file)+ "\n"
             payload5 = {
                 "token"     : config.token,
