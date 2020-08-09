@@ -84,7 +84,7 @@ def main():
     try:
         config = importlib.import_module(conf)
     except Exception as e:
-        print('Error: config file import failed. File: %s Desc: %s' % (conf, e.args), file=sys.stderr)
+        print("Error: config file import failed. File: %s Desc: %s\n" % (conf, e.args), file=sys.stderr)
         sys.exit(1)
     # ------------------
     # 0: mode check (normal / join / leave)
@@ -109,6 +109,9 @@ def main():
     }
     response1  = requests.get(url1, params=payload1)
     json_data1 = response1.json()
+    if json_data1["ok"] == False:
+        print("Error: api/conversations.list failed. Desc: %s\n" % (json_data1["error"]), file=sys.stderr)
+        sys.exit(1)
     channels   = json_data1["channels"]
 
     for i in channels:
@@ -120,7 +123,11 @@ def main():
                 "token"   : config.token,
                 "channel" : i["id"]
             }
-            response2 = requests.get(url2, params=payload2)
+            response2  = requests.get(url2, params=payload2)
+            json_data2 = response2.json()
+            if json_data2["ok"] == False:
+                print("Error: api/conversations.join failed. Desc: %s\n" % (json_data2["error"]), file=sys.stderr)
+                sys.exit(1)
         # ------------------
         # 3: leave channel
         # ------------------
@@ -129,7 +136,11 @@ def main():
                 "token"   : config.token,
                 "channel" : i["id"]
             }
-            response3 = requests.get(url3, params=payload3)
+            response3  = requests.get(url3, params=payload3)
+            json_data3 = response3.json()
+            if json_data3["ok"] == False:
+                print("Error: api/conversations.leave failed. Desc: %s\n" % (json_data3["error"]), file=sys.stderr)
+                sys.exit(1)
         # ------------------
         # 4: get channel posts
         # ------------------
@@ -141,23 +152,30 @@ def main():
             }
             response4  = requests.get(url4, params=payload4)
             json_data4 = response4.json()
-            if json_data4["ok"] == True and len(json_data4["messages"]) != 0:
+            if json_data4["ok"] == False:
+                print("Error: api/conversations.history failed. Desc: %s\n" % (json_data4["error"]), file=sys.stderr)
+                sys.exit(1)
+            elif len(json_data4["messages"]) != 0:
                 text += "#" + i["name"]  + " " + str(len(json_data4["messages"])) + " posts\n"
     # ------------------
     # 5: post result
     # ------------------
     if mode == normal:
         if text != "":
-            text  = "Posts after " + oldest.strftime('%Y/%-m/%-d %-H:%M') + " " + config.tz_name + "\n" + text + "\n"
+            text  = "Posts after " + oldest.strftime("%Y/%-m/%-d %-H:%M") + " " + config.tz_name + "\n" + text + "\n"
             text += "Posted from: %s (%s):%s" % (host, ip, file)+ "\n"
-            print(text)
             payload5 = {
                 "token"     : config.token,
                 "channel"   : config.post_channel_id,
                 "link_names": "true",
                 "text"      : text
             }
-            response5 = requests.get(url5, params=payload5)
+            response5  = requests.get(url5, params=payload5)
+            json_data5 = response5.json()
+            if json_data5["ok"] == False:
+                print("Error: api/chat.postMessage failed. Desc: %s\n" % (json_data5["error"]), file=sys.stderr)
+                sys.exit(1)
+            print(text)
 
 if __name__ == '__main__':
     main()
